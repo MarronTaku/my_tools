@@ -3,7 +3,7 @@
 # 更新と必要なパッケージのインストール
 echo "Updating system and installing required packages..."
 apt update
-apt install -y tesseract-ocr tesseract-ocr-eng tesseract-ocr-jpn x11-utils poppler-utils
+apt install -y tesseract-ocr tesseract-ocr-eng tesseract-ocr-jpn x11-utils poppler-utils qpdf
 
 # # Python仮想環境を作成
 echo "Creating a Python virtual environment..."
