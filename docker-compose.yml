@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  dev:
+    # ビルドするイメージ
+    image: python:3.11.9_mytools
+
+    # コンテナの名前を設定
+    container_name: my_tools
+
+    # 外部インタフェースへの接続を許可
+    privileged: true
+    tty: true
+    ports:
+      - 1000:1000 # ポートはできるだけ被らないように変更する
+    ipc: host
+
+    # 常に起動
+    restart: always
+
+    # (アクセスモードの指定)ホスト側:コンテナ側:アクセスモード(読み込専用 ro(read only) 読み書き rw(read write))
+    volumes:
+      # 共有ディレクトリの設定
+      - ./mycode:/home/mycode:rw

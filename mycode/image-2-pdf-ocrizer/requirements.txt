@@ -1,0 +1,7 @@
+pyautogui
+opencv-python-headless
+pytesseract
+fpdf
+reportlab
+pdf2image
+Pillow
