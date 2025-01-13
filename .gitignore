@@ -10,3 +10,8 @@
 pyvenv.cfg
 .venv
 .DS_Store
+__pycache__
+output
+image_file
+pdf_file
+txt_file

@@ -17,7 +17,14 @@ services:
     # 常に起動
     restart: always
 
+    # X11の設定
+    # export DISPLAY=$(hostname):0
+    environment:
+      - DISPLAY=host.docker.internal:0.0
+
     # (アクセスモードの指定)ホスト側:コンテナ側:アクセスモード(読み込専用 ro(read only) 読み書き rw(read write))
     volumes:
       # 共有ディレクトリの設定
       - ./mycode:/home/mycode:rw
+      # X11の設定
+      - ~/.Xauthority:/root/.Xauthority

@@ -6,10 +6,13 @@ import pyocr.builders
 import subprocess
 import re
 import os
+import argparse
 
 
 def initialize_ocr_tool() -> tuple:
-    """OCRツールを初期化して利用可能な言語を表示する。"""
+    """
+    OCRツールを初期化して利用可能な言語を表示する。
+    """
     tools = pyocr.get_available_tools()
     if not tools:
         raise RuntimeError("No OCR tool found.")
@@ -22,7 +25,9 @@ def initialize_ocr_tool() -> tuple:
 
 
 def extract_text_from_pdf(pdf_path: Path, tool, lang: str) -> str:
-    """PDFから画像としてページを抽出し、OCRでテキストを取得する。"""
+    """
+    PDFから画像としてページを抽出し、OCRでテキストを取得する。
+    """
     pages = convert_from_path(str(pdf_path), 300)
     text = ""
     for i, page in enumerate(pages):
@@ -36,14 +41,18 @@ def extract_text_from_pdf(pdf_path: Path, tool, lang: str) -> str:
 
 
 def save_text_to_file(text: str, output_path: Path):
-    """OCR結果のテキストをファイルに保存する。"""
+    """
+    OCR結果のテキストをファイルに保存する。
+    """
     with open(output_path, mode="w", encoding="utf-8") as f:
         f.write(text)
     print(f"Text saved to {output_path}")
 
 
 def save_tiff_from_pages(pages, output_path: Path):
-    """PDFのページ画像をマルチページTIFFとして保存する。"""
+    """
+    PDFのページ画像をマルチページTIFFとして保存する。
+    """
     pages[0].save(
         str(output_path),
         "TIFF",
@@ -55,7 +64,9 @@ def save_tiff_from_pages(pages, output_path: Path):
 
 
 def run_command(cmd: str):
-    """シェルコマンドを実行する。"""
+    """
+    シェルコマンドを実行する。
+    """
     print(f"Running command: {cmd}")
     returncode = subprocess.run(cmd, shell=True)
     if returncode.returncode != 0:
@@ -65,7 +76,9 @@ def run_command(cmd: str):
 def overlay_text_pdf(
     tiff_path: Path, pdf_path: Path, output_path: Path, lang: str = "jpn+eng"
 ):
-    """テキストオンリーPDFを生成し、オーバーレイして最小サイズのPDFを作成する。"""
+    """
+    テキストのみのPDFを生成し、オーバーレイして最小サイズのPDFを作成する。
+    """
     text_pdf_path = tiff_path.with_name(tiff_path.stem + "_TO.pdf")
     
     # print(tiff_path.with_suffix("_TO"))
@@ -112,7 +125,17 @@ def process_pdf(pdf_name: str):
 
     print(f"Process completed. Output saved at {out_path}")
 
+def args_parser():
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("--pdf_file_name", help="スクリーンショットを行う間隔[s]", type=str)
+    
+    args = parser.parse_args()
+    
+    return args
 
-# 実行例
+# 実行例、複数ページ対応
 if __name__ == "__main__":
-    process_pdf("sample_output")
+    args = args_parser()
+    
+    process_pdf(args.pdf_file_name)
