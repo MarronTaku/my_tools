@@ -7,7 +7,7 @@ import subprocess
 import re
 import os
 import argparse
-
+from PyPDF2 import PdfMerger
 
 def initialize_ocr_tool() -> tuple:
     """
@@ -154,7 +154,7 @@ def process_pdf(pdfs_dir_path: str):
     """PDFを処理してOCR結果をテキストファイルとPDFに保存する。"""
     # PDFファイルが格納されているフォルダから全てのPDFファイルパスを取得
     pdf_files_path = get_pdf_file_path_specified_folder(pdfs_dir_path)
-    print(pdf_files_path)
+    # print(pdf_files_path)
     
     # OCRツール初期化
     tool, lang = initialize_ocr_tool()
@@ -171,6 +171,23 @@ def process_pdf(pdfs_dir_path: str):
         create_character_embedding_pdf(tool, lang, pdf_file_path, pdfs_dir_path)
         print()
 
+def concatenate_pdf_file(pdfs_dir_path: Path):
+    """複数のPDFファイルを一つに結合する"""
+    # 文字埋め込みPDFが生成されているディレクトリから、PDFファイルパスを取得
+    ocr_done_dir_path = os.path.join(pdfs_dir_path, "output")
+    ocr_done_files_path = get_pdf_file_path_specified_folder(ocr_done_dir_path)
+    
+    # 各PDFファイルを追加
+    merger = PdfMerger()
+    for pdf in ocr_done_files_path:
+        merger.append(pdf)
+    
+    # 結合したPDFファイルを保存
+    merged_output = os.path.join(ocr_done_dir_path, "merged_output.pdf")
+    merger.write(merged_output)
+    merger.close()
+    print(f"Merged output saved at {merged_output}")
+
 def args_parser():
     parser = argparse.ArgumentParser()
 
@@ -185,4 +202,8 @@ if __name__ == "__main__":
     args = args_parser()
     pdfs_dir_path: Path = args.pdfs_dir_path
     
+    # 文字埋め込みpdfの生成
     process_pdf(pdfs_dir_path)
+    
+    # PDFファイルを結合する
+    concatenate_pdf_file(pdfs_dir_path)
