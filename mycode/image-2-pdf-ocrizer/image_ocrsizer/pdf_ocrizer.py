@@ -17,12 +17,12 @@ def initialize_ocr_tool() -> tuple:
     if not tools:
         raise RuntimeError("No OCR tool found.")
     tool = tools[0]
-    langs = tool.get_available_languages()
-    print(f"Available languages: {', '.join(langs)}")
-    lang = langs[1] if len(langs) > 1 else langs[0]
+    # langs = tool.get_available_languages()
+    # print(f"Available languages: {', '.join(langs)}")
+    # lang = langs[1] if len(langs) > 1 else langs[0]
+    lang = "eng+jpn"
     print(f"Will use lang '{lang}'")
     return tool, lang
-
 
 def extract_text_from_pdf(pdf_path: Path, tool, lang: str) -> str:
     """
@@ -38,7 +38,6 @@ def extract_text_from_pdf(pdf_path: Path, tool, lang: str) -> str:
         page_text = re.sub(r"([あ-んア-ン一-龥ー])\s+((?=[あ-んア-ン一-龥ー]))", r"\1\2", page_text)
         text += page_text
     return text, pages
-
 
 def save_text_to_file(text: str, output_path: Path):
     """
@@ -96,20 +95,18 @@ def overlay_text_pdf(
     )
     run_command(cmd_qpdf)
 
+def create_character_embedding_pdf(tool, lang, pdf_file_path, pdfs_dir_path):
+    """文字埋め込みPDFを作成する"""
+    # ファイル名を抽出し、拡張子を除去
+    pdf_name = os.path.splitext(os.path.basename(pdf_file_path))[0]
 
-def process_pdf(pdf_name: str):
-    """PDFを処理してOCR結果をテキストファイルとPDFに保存する。"""
-    # パスの設定
-    base_path = Path(".")
-    pdf_path = base_path / "pdf_file" / f"{pdf_name}.pdf"
+    # ファイルパスの設定
+    base_path = Path.cwd() / extract_dir(pdf_file_path)
+    pdf_path = base_path / f"{pdf_name}.pdf"
     txt_path = base_path / "txt_file" / f"{pdf_name}.txt"
-    out_path = base_path / "pdf_file" / "output" / f"{pdf_name}.pdf"
-    image_dir = base_path / "image_file"
-    image_dir.mkdir(exist_ok=True)
-
-    # OCRツール初期化
-    tool, lang = initialize_ocr_tool()
-
+    out_path = base_path / "output" / f"{pdf_name}.pdf"
+    image_dir_path = base_path / "image_file"
+    
     # OCR処理とテキスト抽出
     text, pages = extract_text_from_pdf(pdf_path, tool, lang)
 
@@ -117,7 +114,7 @@ def process_pdf(pdf_name: str):
     save_text_to_file(text, txt_path)
 
     # TIFF保存
-    tiff_path = image_dir / f"{pdf_name}.tif"
+    tiff_path = image_dir_path / f"{pdf_name}.tif"
     save_tiff_from_pages(pages, tiff_path)
 
     # テキストPDFオーバーレイ処理
@@ -125,10 +122,59 @@ def process_pdf(pdf_name: str):
 
     print(f"Process completed. Output saved at {out_path}")
 
+def get_pdf_file_path_specified_folder(pdfs_dir_path):
+    """指定したフォルダのpdfファイルパスを取得する"""
+    pdf_files = [os.path.join(pdfs_dir_path, f) for f in os.listdir(pdfs_dir_path) if f.endswith('.pdf')]
+    
+    # ファイルがない場合は処理を終了
+    if not pdf_files:
+        print("指定されたフォルダに.pdfファイルがありません。")
+        return
+    
+    # 指定されたフォルダ内の.pngファイルを全て取得
+    pdf_files_path_sorted = sorted(pdf_files)
+    
+    return pdf_files_path_sorted
+
+def create_dir(output_base_dir: str, dir_name: str) -> None:
+    """ディレクトリを作成する"""
+    base_path = Path.cwd()
+    dir_path = base_path / output_base_dir / dir_name
+    dir_path.mkdir(exist_ok=True)
+
+def extract_dir(file_path: str) -> str:
+    """親ディレクトリのパスを取得する"""
+    # Pathオブジェクトを作成
+    path = Path(file_path)
+    # 親ディレクトリのパスを取得
+    directory = path.parent
+    return str(directory)
+
+def process_pdf(pdfs_dir_path: str):
+    """PDFを処理してOCR結果をテキストファイルとPDFに保存する。"""
+    # PDFファイルが格納されているフォルダから全てのPDFファイルパスを取得
+    pdf_files_path = get_pdf_file_path_specified_folder(pdfs_dir_path)
+    print(pdf_files_path)
+    
+    # OCRツール初期化
+    tool, lang = initialize_ocr_tool()
+    # print(tool, lang)
+    
+    # ファイルの親ディレクトリを取得し、ディレクトリを作成
+    output_base_dir = extract_dir(pdf_files_path[0])
+    create_dir(output_base_dir, "txt_file")
+    create_dir(output_base_dir, "output")
+    create_dir(output_base_dir, "image_file")
+    
+    # 文字埋め込みPDFを生成
+    for pdf_file_path in pdf_files_path:
+        create_character_embedding_pdf(tool, lang, pdf_file_path, pdfs_dir_path)
+        print()
+
 def args_parser():
     parser = argparse.ArgumentParser()
-    
-    parser.add_argument("--pdf_file_name", help="スクリーンショットを行う間隔[s]", type=str)
+
+    parser.add_argument("--pdfs_dir_path", help="pdfファイルが格納されているフォルダを指定", type=str)
     
     args = parser.parse_args()
     
@@ -137,5 +183,6 @@ def args_parser():
 # 実行例、複数ページ対応
 if __name__ == "__main__":
     args = args_parser()
+    pdfs_dir_path: Path = args.pdfs_dir_path
     
-    process_pdf(args.pdf_file_name)
+    process_pdf(pdfs_dir_path)
