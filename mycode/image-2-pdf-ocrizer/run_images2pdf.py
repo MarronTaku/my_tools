@@ -10,6 +10,7 @@ def _run_subprocess(command: list[str]) -> None:
     subprocess.run(command)
 
 def run_autoscreenshot(params: Dict) -> None:
+    """自動スクリーンショットを実行する"""
     # 設定
     python_script = "images2pdf/auto_screenshot.py" # 実行するPythonスクリプト
     
@@ -28,10 +29,4 @@ def run_autoscreenshot(params: Dict) -> None:
 
 if __name__ == "__main__":
     params = setting_params()
-    
-    # 設定
-    docker_image = "image_ocrizer:latest" # 使用するDockerイメージ
-    python_script = "images2pdf/auto_screenshot.py" # 実行するPythonスクリプト
-    requirements_file = "images2pdf/requirements.txt"  # requirements.txtファイル
-    
     run_autoscreenshot(params)

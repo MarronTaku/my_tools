@@ -2,7 +2,7 @@ version: '3.8'
 services:
   dev:
     # ビルドするイメージ
-    image: python:3.11.9_mytools
+    image: image_ocrizer:latest
 
     # コンテナの名前を設定
     container_name: my_tools

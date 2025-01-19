@@ -24,6 +24,22 @@ def move_file(src_path: str, dest_dir: str):
     shutil.move(str(src), str(dest / src.name))
     print(f"{src} を {dest} に移動しました。")
 
+def _remove_extension_from_path(file_path: str) -> str:
+    # Pathオブジェクトを作成
+    path = Path(file_path)
+    
+    # 拡張子を除いた部分を取得し、親ディレクトリと結合
+    return str(path.with_suffix(''))
+
+def _delete_file(file_path: str):
+    try:
+        os.remove(file_path)
+        print(f"{file_path} has been deleted.")
+    except FileNotFoundError:
+        print(f"{file_path} not found.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 def _upscale_and_enhance_image(input_path: str, output_path: str, scale_factor: float = 1.0):
     """
     画像を指定したスケールで拡大し、鮮明化して出力する関数。
@@ -49,7 +65,7 @@ def _upscale_and_enhance_image(input_path: str, output_path: str, scale_factor: 
     sharpened_image = cv2.addWeighted(upscaled_image, 1.5, gaussian_blur, -0.5, 0)
 
     # 一時ファイルにシャープ化した画像を保存
-    temp_path = "temp_upscaled_sharpened.png"
+    temp_path = input_path
     cv2.imwrite(temp_path, sharpened_image)
 
     # PILでコントラストを調整
@@ -60,43 +76,25 @@ def _upscale_and_enhance_image(input_path: str, output_path: str, scale_factor: 
 
     print(f"拡大・鮮明化した画像を保存しました: {output_path}")
 
-
-def pngs_to_pdf(dir_path):
-    """
-    指定されたフォルダ内のすべての.pngファイルを一つのPDFに結合する。
-
-    :param folder_path: .pngファイルが格納されたフォルダのパス
-    """
+def convert_img2pdf(dir_path: str):
+    """pngファイルを鮮明化して、PDFファイルに変換する"""
+    # 全てのファイルを取得
     png_files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.endswith('.png')]
+    print(png_files)
     
     # ファイルがない場合は処理を終了
     if not png_files:
         print("指定されたフォルダに.pngファイルがありません。")
         return
-    
-    # 指定されたフォルダ内の.pngファイルを全て取得
-    png_files_sorted = sorted(png_files)
-
-    # 画像の見た目を向上させる
-    for file in png_files:
-        _upscale_and_enhance_image(file, file)
 
     # 画像の並び替え
     png_files_sorted = sorted(png_files)
-
-    # 最初の画像を基にPDFを作成
-    img_list = []
-    first_image = Image.open(png_files_sorted[0])
-    first_image.convert('RGB')
     
-    # 2番目以降の画像をリストに追加
-    for file in png_files_sorted[1:]:
+    # 画像を鮮明化し、pngファイルをpdfファイルに変換する
+    for file in png_files_sorted:
+        _upscale_and_enhance_image(file, file)
         img = Image.open(file)
         img.convert('RGB')
-        img_list.append(img)
-
-    # PDFを保存
-    output_path = os.path.join(dir_path, "output.pdf")
-    first_image.save(output_path, "PDF", save_all=True, append_images=img_list)
-
-    print(f"PDFが保存されました: {output_path}")
+        output_path = _remove_extension_from_path(file) + ".pdf"
+        img.save(output_path, "PDF")
+        _delete_file(file)

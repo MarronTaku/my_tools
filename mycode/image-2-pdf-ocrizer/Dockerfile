@@ -26,6 +26,9 @@ RUN apt update -y \
     lsb-release \
     cmake
 
+# OCRに必要なパッケージのインストール
+RUN apt install -y tesseract-ocr tesseract-ocr-eng tesseract-ocr-jpn x11-utils poppler-utils qpdf
+
 # ocrに必要なライブラリのインストール
 COPY image_ocrsizer/requirements.txt .
 RUN pip install -r requirements.txt && rm requirements.txt

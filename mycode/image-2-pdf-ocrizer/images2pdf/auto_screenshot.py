@@ -8,7 +8,7 @@ import mouse_point, make_pdf
 
 def _make_output_dir(head_dir_name: str):
     """フォルダを作成する"""
-    output_dir_path = "images2pdf/output/" + head_dir_name + "_" + str(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
+    output_dir_path = "output/" + head_dir_name + "_" + str(datetime.datetime.now().strftime("%Y%m%d%H%M%S"))
     os.mkdir(output_dir_path)
     return output_dir_path
 
@@ -65,7 +65,7 @@ def main():
         span=args.span, output_head_dir_name=args.output_head_dir_name)
     
     # 指定したフォルダーからpdfを作成する
-    make_pdf.pngs_to_pdf(output_dir_path)
+    make_pdf.convert_img2pdf(output_dir_path)
 
 if __name__ == "__main__":
     main()
